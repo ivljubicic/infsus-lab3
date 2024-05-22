@@ -20,8 +20,27 @@ export const getBiljkaById = async (id: number) => {
     return data;
   }
 
-  export const createBiljka = async (newBiljka: Biljka) => {
-    const { data, error } = await supabase.from('biljka').insert([newBiljka]);
+  export const createBiljka = async (formData: {
+    naziv: string;
+    osuncanje: string;
+    phtla: string;
+    vrijemebranja: string;
+    vrijemesadnje: string;
+    vlaznost: string;
+    vrtlarid: string;
+    image_url: string;
+  }) => {
+    const { data, error } = await supabase.from('biljka').insert([
+      {
+        naziv: formData.naziv,
+        osuncanje: parseInt(formData.osuncanje),
+        phtla: parseInt(formData.phtla),
+        vrijemebranja: new Date(formData.vrijemebranja),
+        vrijemesadnje: new Date(formData.vrijemesadnje),
+        vlaznost: parseInt(formData.vlaznost),
+        vrtlarid: parseInt(formData.vrtlarid),
+      },
+    ]);
     if (error) {
       console.error('Error creating biljka:', error);
       return { data: null, error };

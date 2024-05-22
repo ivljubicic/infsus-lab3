@@ -129,7 +129,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, columns }) => {
                             )}
                             {columns.map((column, index) => (
                               <TableCell key={index}>
-                                {plant[column as keyof Biljka]}
+                                {String(plant[column as keyof Biljka])}
                               </TableCell>
                             ))}
                             {/* <TableCell>
