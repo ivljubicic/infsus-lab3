@@ -1,7 +1,7 @@
 interface Vrtlar {
     vrtlarID: number;
     ime: string;
-    mailAdresa: string;
+    mailadresa: string;
   }
   
 interface InventarnaStavka {
@@ -21,14 +21,15 @@ interface Izracun {
   }
   
 interface Biljka {
-    biljkaID: number;
+    biljkaid: number;
     naziv: string;
     osuncanje: number;
-    phTla: number;
+    phtla: number;
     vlaznost: number;
-    vrijemeBranja: Date;
-    vrijemeSadnje: Date;
-    vrtlarID: number | null;
+    vrijemebranja: Date;
+    vrijemesadnje: Date;
+    vrtlarid: number | null;
+    image_url: string | null;
   }
   
 interface Senzor {

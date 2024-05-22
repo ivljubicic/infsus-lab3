@@ -1,17 +1,17 @@
 import { Dashboard } from "@/components/Dashboard";
-import { createClient } from "@/utils/supabase/server";
+import { getBiljke } from "@/model/biljkeModel";
 
 export default async function Index() {
-  const supabase = createClient();
+  const biljke = await getBiljke();
+  const includedKeys = ["naziv", "vrijemebranja", "vrijemesadnje"];
 
-  const { data: biljke } = await supabase.from("biljka").select();
-
-  // select headings from biljke
-  const headings = Object.keys(biljke[0]);
+  const columns = Object.keys(biljke[0]).filter((heading) =>
+    includedKeys.includes(heading)
+  );
 
   return (
     <div>
-      <Dashboard data={biljke} columns={headings} />
+      <Dashboard data={biljke} columns={columns} />
     </div>
   );
 }

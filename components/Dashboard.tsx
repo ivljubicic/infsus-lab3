@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { MoreHorizontal, PlusCircle, Search } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,22 @@ import {
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Biljka } from "@/types/database";
 
-export function Dashboard({ data, columns }) {
+interface DashboardProps {
+  data: Biljka[];
+  columns: string[];
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ data, columns }) => {
+  const router = useRouter();
+
+  const handleRowClick = (id: number) => {
+    router.push(`/biljka/${id}`);
+  };
+
+  const handleAddPlant = () => {
+    router.push("/biljka/add");
+  };
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
@@ -48,7 +64,11 @@ export function Dashboard({ data, columns }) {
           <Tabs defaultValue="all">
             <div className="flex items-center">
               <div className="ml-auto flex items-center gap-2">
-                <Button size="sm" className="h-7 gap-1">
+                <Button
+                  size="sm"
+                  className="h-7 gap-1"
+                  onClick={handleAddPlant}
+                >
                   <PlusCircle className="h-3.5 w-3.5" />
                   <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                     Add Plant
@@ -91,7 +111,11 @@ export function Dashboard({ data, columns }) {
                         </TableRow>
                       ) : (
                         data.map((plant) => (
-                          <TableRow key={plant.id}>
+                          <TableRow
+                            key={plant.biljkaid}
+                            onClick={() => handleRowClick(plant.biljkaid)}
+                            className="cursor-pointer hover:bg-gray-200"
+                          >
                             {columns.includes("image_url") && (
                               <TableCell className="hidden sm:table-cell">
                                 <Image
@@ -104,9 +128,11 @@ export function Dashboard({ data, columns }) {
                               </TableCell>
                             )}
                             {columns.map((column, index) => (
-                              <TableCell key={index}>{plant[column]}</TableCell>
+                              <TableCell key={index}>
+                                {plant[column as keyof Biljka]}
+                              </TableCell>
                             ))}
-                            <TableCell>
+                            {/* <TableCell>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button
@@ -124,7 +150,7 @@ export function Dashboard({ data, columns }) {
                                   <DropdownMenuItem>Delete</DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
-                            </TableCell>
+                            </TableCell> */}
                           </TableRow>
                         ))
                       )}
@@ -144,4 +170,4 @@ export function Dashboard({ data, columns }) {
       </div>
     </div>
   );
-}
+};
