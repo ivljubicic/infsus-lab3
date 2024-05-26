@@ -47,6 +47,16 @@ export const getBiljkaById = async (id: number) => {
     }
     return { data: data ? data[0] : null, error: null };
   };
+
+// get a list of ids of biljke and return the data
+export const getBiljkeByIds = async (ids: number[]) => {
+    const { data, error } = await supabase.from('biljka').select().in('biljkaid', ids);
+    if (error) {
+      console.error('Error fetching biljka data:', error);
+      return [];
+    }
+    return data;
+  };
   
   // Update an existing biljka
   export const updateBiljka = async (id: number, updatedBiljka: Partial<Biljka>) => {

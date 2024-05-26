@@ -32,6 +32,11 @@ interface Biljka {
     image_url: string | null;
   }
   
+interface Lokacija {
+    id: number;
+    ime: string;
+}
+
 interface Senzor {
     senzorID: number;
     tipSenzora: string;
@@ -48,10 +53,10 @@ interface SustavZaNavodnjavanje {
   }
   
 interface Gredica {
-    gredicaID: number;
+    gredicaid: number;
     duljina: number;
     sirina: number;
-    lokacija: string;
+    lokacijaid: number;
     naziv: string;
     vrtlarID: number | null;
     senzorID: number | null;
@@ -59,9 +64,11 @@ interface Gredica {
   }
 
   interface Posadena {
-    gredicaID: number;
-    biljkaID: number;
+    gredicaid: number;
+    biljkaid: number;
+    kolicina: number;
+    vrijemesadnje: Date;
   }
   
-  export type { Vrtlar, InventarnaStavka, Izracun, Biljka, Senzor, SustavZaNavodnjavanje, Gredica, Posadena };
+  export type { Vrtlar, InventarnaStavka, Izracun, Biljka, Senzor, SustavZaNavodnjavanje, Gredica, Lokacija, Posadena };
   

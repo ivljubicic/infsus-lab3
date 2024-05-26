@@ -1,17 +1,30 @@
 import { Dashboard } from "@/components/Dashboard";
 import { getBiljke } from "@/model/biljkeModel";
+import { getGredice } from "@/model/gredicaModel";
+import { getLokacije } from "@/model/lokacijaModel";
+
+async function fetchBiljke() {
+  const biljke = await getBiljke();
+  return biljke;
+}
 
 export default async function Index() {
-  const biljke = await getBiljke();
-  const includedKeys = ["naziv", "vrijemebranja", "vrijemesadnje"];
+  const gredice = await getGredice();
+  const lokacije = await getLokacije();
+  const includedKeys = ["naziv", "lokacijaid", "duljina", "sirina"];
 
-  const columns = Object.keys(biljke[0]).filter((heading) =>
-    includedKeys.includes(heading)
-  );
+  console.log(lokacije);
+
+  var columns: string[] = [];
+  if (gredice.length > 0) {
+    columns = Object.keys(gredice[0]).filter((heading) =>
+      includedKeys.includes(heading)
+    );
+  }
 
   return (
     <div>
-      <Dashboard data={biljke} columns={columns} />
+      <Dashboard gredice={gredice} lokacije={lokacije} columns={columns} />
     </div>
   );
 }

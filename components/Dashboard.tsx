@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { MoreHorizontal, PlusCircle, Search } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,13 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -29,23 +22,41 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Biljka } from "@/types/database";
+import { Gredica, Lokacija } from "@/types/database";
 
 interface DashboardProps {
-  data: Biljka[];
+  gredice: Gredica[];
+  lokacije: Lokacija[];
   columns: string[];
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ data, columns }) => {
+export const Dashboard: React.FC<DashboardProps> = ({
+  gredice,
+  lokacije,
+  columns,
+}) => {
   const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [filteredData, setFilteredData] = useState<Gredica[]>(gredice);
+  useEffect(() => {
+    const filtered = gredice.filter((gredica: Gredica) =>
+      columns.some((key) =>
+        gredica[key as keyof Gredica]
+          ?.toString()
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
+      )
+    );
+    setFilteredData(filtered);
+  }, [searchTerm, gredice, columns]);
 
   const handleRowClick = (id: number) => {
-    router.push(`/biljka/${id}`);
+    router.push(`/gredica/${id}`);
   };
 
-  const handleAddPlant = () => {
-    router.push("/biljka/add");
-  };
+  // const handleAddPlant = () => {
+  //   router.push("/biljka/add");
+  // };
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -56,13 +67,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, columns }) => {
             <Input
               type="search"
               placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
             />
           </div>
         </header>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
           <Tabs defaultValue="all">
-            <div className="flex items-center">
+            {/* <div className="flex items-center">
               <div className="ml-auto flex items-center gap-2">
                 <Button
                   size="sm"
@@ -75,12 +88,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, columns }) => {
                   </span>
                 </Button>
               </div>
-            </div>
+            </div> */}
             <TabsContent value="all">
               <Card x-chunk="dashboard-06-chunk-0">
                 <CardHeader>
-                  <CardTitle>Biljke</CardTitle>
-                  <CardDescription>Uvid u tvoje vrt.</CardDescription>
+                  <CardTitle>Gredice</CardTitle>
+                  <CardDescription>Pregled tvojih gredica.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -91,16 +104,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, columns }) => {
                             <span className="sr-only">Image</span>
                           </TableHead>
                         )}
-                        {columns.map((column, index) => (
-                          <TableHead key={index}>{column}</TableHead>
-                        ))}
+                        {columns.map((column, index) => {
+                          if (column === "lokacijaid") {
+                            return (
+                              <TableHead key={"lokacija"}>Lokacija</TableHead>
+                            );
+                          } else {
+                            return (
+                              <TableHead key={index}>
+                                {column.charAt(0).toUpperCase() +
+                                  column.slice(1)}
+                              </TableHead>
+                            );
+                          }
+                        })}
                         <TableHead>
                           <span className="sr-only">Actions</span>
                         </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {data.length === 0 ? (
+                      {filteredData.length === 0 ? (
                         <TableRow>
                           <TableCell
                             colSpan={columns.length + 1}
@@ -110,28 +134,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, columns }) => {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        data.map((plant) => (
+                        filteredData.map((gredica) => (
                           <TableRow
-                            key={plant.biljkaid}
-                            onClick={() => handleRowClick(plant.biljkaid)}
+                            key={gredica.gredicaid}
+                            onClick={() => handleRowClick(gredica.gredicaid)}
                             className="cursor-pointer hover:bg-gray-200"
                           >
-                            {columns.includes("image_url") && (
-                              <TableCell className="hidden sm:table-cell">
-                                <Image
-                                  alt="Product image"
-                                  className="aspect-square rounded-md object-cover"
-                                  height="64"
-                                  src={plant.image_url || "/placeholder.svg"}
-                                  width="64"
-                                />
-                              </TableCell>
-                            )}
-                            {columns.map((column, index) => (
-                              <TableCell key={index}>
-                                {String(plant[column as keyof Biljka])}
-                              </TableCell>
-                            ))}
+                            {columns.map((column, index) => {
+                              if (column === "lokacijaid") {
+                                return (
+                                  <TableCell key={"lokacija"}>
+                                    {lokacije[gredica.lokacijaid].ime}
+                                  </TableCell>
+                                );
+                              } else {
+                                return (
+                                  <TableCell key={index}>
+                                    {String(gredica[column as keyof Gredica])}
+                                  </TableCell>
+                                );
+                              }
+                            })}
                             {/* <TableCell>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -159,8 +182,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, columns }) => {
                 </CardContent>
                 <CardFooter>
                   <div className="text-xs text-muted-foreground">
-                    Showing <strong>1-{data.length}</strong> of{" "}
-                    <strong>{data.length}</strong> products
+                    Showing <strong>1-{filteredData.length}</strong> of{" "}
+                    <strong>{gredice.length}</strong> products
                   </div>
                 </CardFooter>
               </Card>
