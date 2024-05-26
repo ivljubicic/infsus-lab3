@@ -19,7 +19,7 @@ import {
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Biljka, Posadena } from "@/types/database";
 import { Button } from "@/components/ui/button";
-import { deletePosadena } from "@/model/gredicaModel";
+import { deletePosadena, updatePosadena } from "@/model/gredicaModel";
 
 interface DashboardProps {
   biljke: Biljka[];
@@ -29,20 +29,55 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({
   biljke: initialBiljke,
-  posadene,
+  posadene: initialPosadene,
   gredicaid,
 }) => {
   const [biljke, setBiljke] = useState(initialBiljke);
+  const [posadene, setPosadene] = useState(initialPosadene);
+  const [editBiljkaId, setEditBiljkaId] = useState<number | null>(null);
+  const [editFormData, setEditFormData] = useState<Posadena | null>(null);
 
   function handleDeletion(biljkaid: number, gredicaid: number) {
     deletePosadena(gredicaid, biljkaid).then(() => {
       setBiljke((prevBiljke) =>
         prevBiljke.filter((biljka) => biljka.biljkaid !== biljkaid)
       );
+      setPosadene((prevPosadene) =>
+        prevPosadene.filter((posadena) => posadena.biljkaid !== biljkaid)
+      );
     });
   }
 
-  function handleEdit(biljkaid: number, gredicaid: number) {}
+  function handleEdit(biljkaid: number, gredicaid: number) {
+    const posadena = posadene.find((p) => p.biljkaid === biljkaid);
+    if (posadena) {
+      setEditFormData(posadena);
+      setEditBiljkaId(biljkaid);
+    }
+  }
+
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = e.target;
+    setEditFormData((prevData) => {
+      if (!prevData) return prevData;
+      return {
+        ...prevData,
+        [name]: name === "kolicina" ? parseInt(value, 10) : new Date(value),
+      };
+    });
+  }
+
+  async function handleApply() {
+    if (editFormData) {
+      await updatePosadena(editFormData);
+      setEditBiljkaId(null);
+      setPosadene((prevPosadene) =>
+        prevPosadene.map((posadena) =>
+          posadena.biljkaid === editFormData.biljkaid ? editFormData : posadena
+        )
+      );
+    }
+  }
 
   const columns = [
     "naziv",
@@ -50,7 +85,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     "osuncanje",
     "vlaznost",
     "phtla",
-    "vrijemebranja",
     "vrijemesadnje",
   ];
 
@@ -108,19 +142,39 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                     }
                                   </TableCell>
                                 );
+                              } else if (column === "vrijemesadnje") {
+                                return (
+                                  <TableCell
+                                    key={index}
+                                    suppressHydrationWarning
+                                  >
+                                    {new Date(
+                                      posadene.find(
+                                        (p) => p.biljkaid === biljka.biljkaid
+                                      )!.vrijemesadnje
+                                    ).toLocaleDateString()}
+                                  </TableCell>
+                                );
                               } else {
                                 return (
                                   <TableCell
                                     key={index}
                                     suppressHydrationWarning
                                   >
-                                    {String(biljka[column])}
+                                    {String(biljka[column as keyof Biljka])}
                                   </TableCell>
                                 );
                               }
                             })}
                             <TableCell>
-                              <Button variant="outline">Edit</Button>
+                              <Button
+                                variant="outline"
+                                onClick={() =>
+                                  handleEdit(biljka.biljkaid, gredicaid)
+                                }
+                              >
+                                Edit
+                              </Button>
                               <Button
                                 variant="destructive"
                                 onClick={() =>
@@ -136,6 +190,48 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </TableBody>
                   </Table>
                 </CardContent>
+                {editBiljkaId !== null && editFormData && (
+                  <CardContent>
+                    <div className="mt-4">
+                      <h3 className="text-lg font-semibold">Edit Biljka</h3>
+                      <div className="mt-2">
+                        <label className="block">
+                          Količina:
+                          <input
+                            type="number"
+                            name="kolicina"
+                            value={editFormData.kolicina}
+                            onChange={handleInputChange}
+                            className="w-full border rounded p-2"
+                          />
+                        </label>
+                      </div>
+                      <div className="mt-2">
+                        <label className="block">
+                          Vrijeme Sadnje:
+                          <input
+                            type="date"
+                            name="vrijemesadnje"
+                            value={
+                              editFormData.vrijemesadnje
+                                ? new Date(editFormData.vrijemesadnje)
+                                    .toISOString()
+                                    .split("T")[0]
+                                : ""
+                            }
+                            onChange={handleInputChange}
+                            className="w-full border rounded p-2"
+                          />
+                        </label>
+                      </div>
+                      <div className="mt-4">
+                        <Button variant="default" onClick={handleApply}>
+                          Apply
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                )}
                 <CardFooter>
                   <div className="text-xs text-muted-foreground">
                     Showing <strong>1-{biljke.length}</strong> of{" "}
