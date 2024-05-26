@@ -29,7 +29,6 @@ interface Biljka {
     vrijemebranja: Date;
     vrijemesadnje: Date;
     vrtlarid: number | null;
-    image_url: string | null;
   }
   
 interface Lokacija {

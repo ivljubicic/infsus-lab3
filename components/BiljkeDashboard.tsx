@@ -19,27 +19,37 @@ import {
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Biljka, Posadena } from "@/types/database";
 import { Button } from "@/components/ui/button";
-import { deletePosadena, updatePosadena } from "@/model/gredicaModel";
+import {
+  deletePosadena,
+  updatePosadena,
+  createPosadena,
+} from "@/model/gredicaModel";
 
 interface DashboardProps {
+  posadeneBiljke: Biljka[];
   biljke: Biljka[];
   posadene: Posadena[];
   gredicaid: number;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
-  biljke: initialBiljke,
+  posadeneBiljke: initialBiljke,
+  biljke,
   posadene: initialPosadene,
   gredicaid,
 }) => {
-  const [biljke, setBiljke] = useState(initialBiljke);
+  const [posadeneBiljke, setPosadeneBiljke] = useState(initialBiljke);
   const [posadene, setPosadene] = useState(initialPosadene);
   const [editBiljkaId, setEditBiljkaId] = useState<number | null>(null);
   const [editFormData, setEditFormData] = useState<Posadena | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [newBiljkaId, setNewBiljkaId] = useState<number | null>(null);
+  const [newKolicina, setNewKolicina] = useState<number>(0);
+  const [newVrijemeSadnje, setNewVrijemeSadnje] = useState<string>("");
 
   function handleDeletion(biljkaid: number, gredicaid: number) {
     deletePosadena(gredicaid, biljkaid).then(() => {
-      setBiljke((prevBiljke) =>
+      setPosadeneBiljke((prevBiljke) =>
         prevBiljke.filter((biljka) => biljka.biljkaid !== biljkaid)
       );
       setPosadene((prevPosadene) =>
@@ -76,6 +86,41 @@ export const Dashboard: React.FC<DashboardProps> = ({
           posadena.biljkaid === editFormData.biljkaid ? editFormData : posadena
         )
       );
+      const updatedBiljka = posadeneBiljke.find(
+        (b) => b.biljkaid === editFormData.biljkaid
+      );
+      if (updatedBiljka) {
+        setPosadeneBiljke((prevBiljke) =>
+          prevBiljke.map((biljka) =>
+            biljka.biljkaid === editFormData.biljkaid
+              ? { ...biljka, ...editFormData }
+              : biljka
+          )
+        );
+      }
+    }
+  }
+
+  async function handleAddBiljka() {
+    if (newBiljkaId !== null && newVrijemeSadnje) {
+      const newPosadena: Posadena = {
+        gredicaid,
+        biljkaid: newBiljkaId,
+        kolicina: newKolicina,
+        vrijemesadnje: new Date(newVrijemeSadnje),
+      };
+      await createPosadena(newPosadena);
+      setPosadene((prevPosadene) => [...prevPosadene, newPosadena]);
+
+      const addedBiljka = biljke.find((b) => b.biljkaid === newBiljkaId);
+      if (addedBiljka) {
+        setPosadeneBiljke((prevBiljke) => [...prevBiljke, addedBiljka]);
+      }
+
+      setNewBiljkaId(null);
+      setNewKolicina(0);
+      setNewVrijemeSadnje("");
+      setIsAdding(false);
     }
   }
 
@@ -96,7 +141,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <TabsContent value="all">
               <Card>
                 <CardHeader>
-                  <CardTitle>Biljke</CardTitle>
+                  <CardTitle>posadeneBiljke</CardTitle>
                   <CardDescription>
                     Pregled tvojih biljaka za gredicu.
                   </CardDescription>
@@ -113,7 +158,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {biljke.length === 0 ? (
+                      {posadeneBiljke.length === 0 ? (
                         <TableRow>
                           <TableCell
                             colSpan={columns.length}
@@ -123,7 +168,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           </TableCell>
                         </TableRow>
                       ) : (
-                        biljke.map((biljka) => (
+                        posadeneBiljke.map((biljka) => (
                           <TableRow
                             key={biljka.biljkaid}
                             className="cursor-pointer hover:bg-gray-200"
@@ -233,11 +278,78 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </CardContent>
                 )}
                 <CardFooter>
-                  <div className="text-xs text-muted-foreground">
-                    Showing <strong>1-{biljke.length}</strong> of{" "}
-                    <strong>{biljke.length}</strong> products
+                  <div className="text-xs text-muted-foreground mt-4">
+                    Showing <strong>1-{posadeneBiljke.length}</strong> of{" "}
+                    <strong>{posadeneBiljke.length}</strong> products
                   </div>
                 </CardFooter>
+                <Button variant="default" onClick={() => setIsAdding(true)}>
+                  Add Biljka
+                </Button>
+                {isAdding && (
+                  <div className="mt-4">
+                    <h3 className="text-lg font-semibold">Add Biljka</h3>
+                    <div className="mt-2">
+                      <label className="block">
+                        Biljka:
+                        <select
+                          value={newBiljkaId ?? ""}
+                          onChange={(e) =>
+                            setNewBiljkaId(parseInt(e.target.value, 10))
+                          }
+                          className="w-full border rounded p-2"
+                        >
+                          <option value="" disabled>
+                            Select a biljka
+                          </option>
+                          {biljke.map((biljka) => (
+                            <option
+                              key={biljka.biljkaid}
+                              value={biljka.biljkaid}
+                            >
+                              {biljka.naziv}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    <div className="mt-2">
+                      <label className="block">
+                        Količina:
+                        <input
+                          type="number"
+                          value={newKolicina}
+                          onChange={(e) =>
+                            setNewKolicina(parseInt(e.target.value, 10))
+                          }
+                          className="w-full border rounded p-2"
+                        />
+                      </label>
+                    </div>
+                    <div className="mt-2">
+                      <label className="block">
+                        Vrijeme Sadnje:
+                        <input
+                          type="date"
+                          value={newVrijemeSadnje}
+                          onChange={(e) => setNewVrijemeSadnje(e.target.value)}
+                          className="w-full border rounded p-2"
+                        />
+                      </label>
+                    </div>
+                    <div className="mt-4">
+                      <Button variant="default" onClick={handleAddBiljka}>
+                        Add
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsAdding(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </Card>
             </TabsContent>
           </Tabs>

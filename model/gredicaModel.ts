@@ -59,3 +59,12 @@ export const deletePosadena = async (gredicaid: number, biljkaid: number) => {
     }
     return data;
   }
+
+  export const createPosadena = async (posadena: Posadena) => {
+    const { data, error } = await supabase.from('posadena').insert([posadena]);
+    if (error) {
+      console.error('Error creating posadena:', error);
+      return null;
+    }
+    return data;
+  }
