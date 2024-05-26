@@ -23,7 +23,6 @@ export const AddBiljkaForm: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log("formData", formData);
     e.preventDefault();
     const { data, error } = await createBiljka(formData);
 

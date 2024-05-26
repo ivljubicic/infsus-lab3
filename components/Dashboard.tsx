@@ -130,7 +130,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               if (column === "lokacijaid") {
                                 return (
                                   <TableCell key={"lokacija"}>
-                                    {lokacije[gredica.lokacijaid].ime}
+                                    {lokacije[gredica.lokacijaid]?.ime}
                                   </TableCell>
                                 );
                               } else {
