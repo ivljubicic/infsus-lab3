@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createBiljka } from "@/model/biljkeModel";
+import { parse } from "@supabase/ssr";
 
 export const AddBiljkaForm: React.FC = () => {
   const router = useRouter();
@@ -24,6 +25,26 @@ export const AddBiljkaForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.naziv === "" || formData.osuncanje === "" || formData.phtla === "" || formData.vlaznost === "" || formData.vrtlarid === "") {
+      console.error("Popuni tražena polja.");
+      return;
+    }
+
+    if (parseFloat(formData.osuncanje) < 0 || parseFloat(formData.osuncanje) > 1){
+      console.error("Unesi osunčanje 0-1");
+      return;
+    }
+    if (!Number.isInteger(formData.phtla) || parseInt(formData.phtla) < 0 || parseInt(formData.phtla) > 14){
+      console.error("Upiši ispravan pH tla 0-14");
+      return;
+    }
+
+    if (!Number.isInteger(formData.phtla) || parseInt(formData.phtla) < 0 || parseInt(formData.phtla) > 14){
+      console.error("Upiši ispravan pH tla 0-14");
+      return;
+    }
+
     const { data, error } = await createBiljka(formData);
 
     if (!error) {
