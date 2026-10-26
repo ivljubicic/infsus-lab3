@@ -3,6 +3,8 @@ import { getBiljke } from "@/model/biljkeModel";
 import { getGredice } from "@/model/gredicaModel";
 import { getLokacije } from "@/model/lokacijaModel";
 
+export const dynamic = "force-dynamic";
+
 export default async function Index() {
   const gredice = await getGredice();
   const lokacije = await getLokacije();

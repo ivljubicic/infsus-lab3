@@ -7,15 +7,16 @@ import { getLokacije } from "@/model/lokacijaModel";
 import { Posadena } from "@/types/database";
 
 interface GredicaPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function GredicaPage({ params }: GredicaPageProps) {
-  const gredica = await getGredicaById(parseInt(params.id));
+  const { id } = await params;
+  const gredica = await getGredicaById(parseInt(id));
   const lokacije = await getLokacije();
-  const posadena: Posadena[] = await getPosadeneForGredica(parseInt(params.id));
+  const posadena: Posadena[] = await getPosadeneForGredica(parseInt(id));
   const biljke = await getBiljke();
   // const biljke = await getBiljkeByIds(posadena.map((p) => p.biljkaid));
   const posadeneBiljke = biljke.filter((biljka) =>
@@ -29,7 +30,7 @@ export default async function GredicaPage({ params }: GredicaPageProps) {
         biljke={biljke}
         posadeneBiljke={posadeneBiljke}
         posadene={posadena}
-        gredicaid={parseInt(params.id)}
+        gredicaid={parseInt(id)}
       />
     </div>
   );
